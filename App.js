@@ -1,8 +1,9 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import { AppLoading, Asset, Font } from 'expo';
+import { AppLoading, Asset, Font, Permissions, Notifications } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
-import RootNavigation from './navigation/RootNavigation';
+import RootNavigator from "./navigation/RootNavigation";
+
 
 export default class App extends React.Component {
   state = {
@@ -23,7 +24,7 @@ export default class App extends React.Component {
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
           {Platform.OS === 'android' && <View style={styles.statusBarUnderlay} />}
-          <RootNavigation />
+          <RootNavigator />
         </View>
       );
     }

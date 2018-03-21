@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {StackNavigator} from "react-navigation";
+import HyperLink from 'react-native-hyperlink';
+import { WebBrowser } from "expo";
 
 
 export default class HomeScreen extends React.Component {
@@ -33,10 +35,10 @@ export default class HomeScreen extends React.Component {
       this._fetch();
   }
 
-  _keyExtractor = (item) => item.name;
+  _keyExtractor = (item) => item.num;
 
   _fetch = () => {
-      fetch('https://secret-journey-80752.herokuapp.com/api/list')
+      fetch('https://1f3fdb20.ngrok.io/api/list')
           .then((resp) => resp.json())
           .then((respJson) => {
               this.setState({
@@ -56,10 +58,12 @@ export default class HomeScreen extends React.Component {
 
   _showDetails = (item) => {
     this.props.navigation.navigate('Details', {
-        contentTitle: item.name,
-        contentMainText: item.menu,
-        contentCategory: item.tags,
-        contentFrom: item.address,
+        contentTitle: item.title,
+        contentMainText: item.body,
+        contentCategory: item.category,
+        contentFrom: item.publisher,
+        contentAttachTitle: item.attach_name,
+        contentAttachURL: item.attach_url,
     });
   };
 
@@ -74,14 +78,14 @@ export default class HomeScreen extends React.Component {
                 renderItem={({item}) =>
                     <TouchableOpacity style={styles.boardView} onPress={() => this._showDetails(item)}>
                         <View style={{justifyContent: 'center'}}>
-                            <Icon name={'information-outline'} style={styles.articleIcon} size={35}/>
+                            <Icon name={item.important === 1 ? 'alert' : 'information-outline'} style={styles.articleIcon} size={35}/>
                         </View>
                         <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center'}}>
                             <Text style={styles.sourceText}>
-                                {item.tags}
+                                {item.publisher}
                             </Text>
                             <Text style={styles.boardText}>
-                                {item.name}
+                                {item.title}
                             </Text>
                         </View>
                     </TouchableOpacity>
@@ -93,21 +97,24 @@ export default class HomeScreen extends React.Component {
       )
   }
 
-  // _handleLearnMorePress = () => {
-  //   WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
-  // };
-  //
-  // _handleHelpPress = () => {
-  //   WebBrowser.openBrowserAsync(
-  //     'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
-  //   );
-  // };
 }
 
 class DetailsScreen extends React.Component {
 
+  _handleMainBodyURLPress = (url) => {
+      WebBrowser.openBrowserAsync(url);
+  };
+
+  _keyExtractor = (item) => item[0];
+
+  _openAttachURLs = (item) => {
+      WebBrowser.openBrowserAsync(item.contentAttachURL);
+  };
+
     render() {
         const { params } = this.props.navigation.state;
+        // 添付ファイルだけを取得するエンドポイントを持っておいた方が良い
+        const titles = JSON.parse(params.contentAttachTitle.replace(/'/g, '"'));
 
         return (
             <ScrollView style={{flex: 1}}>
@@ -128,10 +135,32 @@ class DetailsScreen extends React.Component {
                             </Text>
                         </View>
                     </View>
+                    <View style={detailsStyles.attachment}>
+                        <FlatList
+                            style={{flex: 1}}
+                            data={titles}
+                            extraData={titles}
+                            keyExtractor={this._keyExtractor}
+                            renderItem={({item}) =>
+                                <TouchableOpacity style={detailsStyles.attachmentView}>
+                                    <View style={{justifyContent: 'center'}}>
+                                       <Icon name={'attachment'} size={40} style={{justifyContent: 'center', paddingHorizontal: 10}}/>
+                                    </View>
+                                    <View style={{flex: 1, flexDirection: 'column', justifyContent: 'center'}}>
+                                        <Text size={35}>
+                                            {item}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            }
+                        />
+                    </View>
                     <View style={detailsStyles.main}>
-                        <Text style={detailsStyles.mainText}>
-                            {params.contentMainText}
-                        </Text>
+                        <HyperLink linkStyle={detailsStyles.mainTextURL} onPress={ (url, _) => this._handleMainBodyURLPress(url)}>
+                            <Text style={detailsStyles.mainText}>
+                                {params.contentMainText}
+                            </Text>
+                        </HyperLink>
                     </View>
                 </View>
             </ScrollView>
@@ -175,12 +204,31 @@ const detailsStyles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    mainTextURL: {
+        color: '#2980b9',
+        fontSize: 15,
+    },
     supplement: {
         flex: 1,
         flexDirection: 'row',
         justifyContent: 'center',
         backgroundColor: 'white',
         paddingTop: 7
+    },
+    attachment: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        backgroundColor: 'white',
+        paddingTop: 7
+    },
+    attachmentView: {
+        flex: 1,
+        borderStyle: 'solid',
+        borderBottomWidth: 1,
+        padding: 5,
+        flexDirection: 'row',
+        justifyContent: 'center',
     },
     icon: {
         paddingHorizontal: 15,
