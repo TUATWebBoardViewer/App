@@ -38,7 +38,7 @@ export default class HomeScreen extends React.Component {
   _keyExtractor = (item) => item.num;
 
   _fetch = () => {
-      fetch('https://1f3fdb20.ngrok.io/api/list')
+      fetch('http://13.231.194.251:8000/api/list')
           .then((resp) => resp.json())
           .then((respJson) => {
               this.setState({
